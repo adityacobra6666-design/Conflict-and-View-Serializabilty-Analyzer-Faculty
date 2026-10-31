@@ -1,0 +1,41 @@
+services:
+  # ============================================================================
+  # 1. Backend Web Service (Docker Runtime with Tesseract OCR)
+  # ============================================================================
+  - type: web
+    name: conflict-analyzer-backend
+    runtime: docker
+    rootDir: backend
+    dockerfilePath: Dockerfile
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: FRONTEND_URL
+        fromService:
+          type: web
+          name: conflict-analyzer-frontend
+          property: host
+      - key: DATABASE_URL
+        value: sqlite:///./sqlite.db
+      - key: GEMINI_API_KEY
+        sync: false
+
+  # ============================================================================
+  # 2. Frontend Static Site
+  # ============================================================================
+  - type: web
+    name: conflict-analyzer-frontend
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: conflict-analyzer-backend
+          property: host

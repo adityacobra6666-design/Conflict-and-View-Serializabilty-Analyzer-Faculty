@@ -2,6 +2,10 @@ import os
 import httpx
 from typing import Dict, Any, Optional, List
 
+def get_site_url() -> str:
+    """Returns the configured production frontend origin for OpenRouter HTTP-Referer header."""
+    return os.getenv("FRONTEND_URL") or os.getenv("SITE_URL") or "http://localhost:5173"
+
 def normalize_base_url(base_url: Optional[str], provider: str) -> str:
     prov = (provider or "openai-compatible").lower()
     url = (base_url or "").strip()
@@ -85,7 +89,7 @@ def test_ai_connection(
                     "Content-Type": "application/json"
                 }
                 if "openrouter.ai" in norm_base:
-                    headers["HTTP-Referer"] = "http://localhost:5173"
+                    headers["HTTP-Referer"] = get_site_url()
                     headers["X-Title"] = "Conflict & View Serializability Analyzer"
 
                 payload = {
@@ -166,7 +170,7 @@ def discover_ai_models(
                     "Content-Type": "application/json"
                 }
                 if "openrouter.ai" in norm_base:
-                    headers["HTTP-Referer"] = "http://localhost:5173"
+                    headers["HTTP-Referer"] = get_site_url()
                     headers["X-Title"] = "Conflict & View Serializability Analyzer"
 
                 res = client.get(models_url, headers=headers)
@@ -331,7 +335,7 @@ Conflicts Breakdown: {conflicts}
                     "Content-Type": "application/json"
                 }
                 if "openrouter.ai" in norm_base:
-                    headers["HTTP-Referer"] = "http://localhost:5173"
+                    headers["HTTP-Referer"] = get_site_url()
                     headers["X-Title"] = "Conflict & View Serializability Analyzer"
 
                 payload = {

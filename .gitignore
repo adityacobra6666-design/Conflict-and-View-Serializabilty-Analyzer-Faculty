@@ -9,13 +9,25 @@ __pycache__/
 *$py.class
 .pytest_cache/
 *.db
+backend/sqlite.db
 
 # Build outputs
 frontend/dist/
 dist/
 
-# Environment and IDE
+# Environment and secrets
 .env
+.env.*
+*.env
+backend/.env
+backend/.env.*
+frontend/.env
+frontend/.env.*
+!.env.example
+!backend/.env.example
+!frontend/.env.example
+
+# IDE & OS
 .vscode/
 .idea/
 .DS_Store

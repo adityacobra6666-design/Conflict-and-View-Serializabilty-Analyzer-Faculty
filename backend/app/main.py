@@ -1,9 +1,12 @@
-from fastapi import FastAPI
+import os
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.database import engine, Base
 from app.routes import analyze, compare, examples, history, export, ai, health, upload
 
-# Create SQLite database tables if not created
+# Create database tables if not created
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
@@ -12,13 +15,50 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS middleware for React frontend integration
+# Global safe exception handler to avoid leaking internal tracebacks in 500 responses
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    if isinstance(exc, StarletteHTTPException):
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"detail": exc.detail}
+        )
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "An internal server error occurred. Please try again later."}
+    )
+
+# Production CORS configuration
+default_origins = [
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://localhost:3000",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:5174",
+    "http://127.0.0.1:3000",
+]
+
+origins = list(default_origins)
+frontend_url_env = os.getenv("FRONTEND_URL", "").strip()
+allowed_origins_env = os.getenv("ALLOWED_ORIGINS", "").strip()
+
+for env_var in (frontend_url_env, allowed_origins_env):
+    if env_var:
+        for u in env_var.split(","):
+            cleaned = u.strip().rstrip("/")
+            if cleaned and cleaned not in origins:
+                origins.append(cleaned)
+
+# Support Render frontend subdomains via regex (e.g. https://*.onrender.com)
+render_origin_regex = os.getenv("ALLOWED_ORIGIN_REGEX", r"^https:\/\/.*\.onrender\.com$")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
+    allow_origin_regex=render_origin_regex,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin"],
 )
 
 # Register routes

@@ -40,12 +40,14 @@ export const pyqService = {
 
   getProgress(): PyqProgress {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        return JSON.parse(raw);
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const raw = window.localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          return JSON.parse(raw);
+        }
       }
     } catch (e) {
-      console.error('Failed to load PYQ progress', e);
+      // Safe fallback
     }
     return { attempts: {}, bookmarks: [] };
   },
@@ -59,9 +61,11 @@ export const pyqService = {
       timestamp: new Date().toISOString()
     };
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+      }
     } catch (e) {
-      console.error('Failed to save PYQ progress', e);
+      // Safe fallback
     }
     return progress;
   },
@@ -75,9 +79,11 @@ export const pyqService = {
       progress.bookmarks.push(questionId);
     }
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+      }
     } catch (e) {
-      console.error('Failed to save PYQ bookmark', e);
+      // Safe fallback
     }
     return progress;
   },
@@ -85,9 +91,11 @@ export const pyqService = {
   resetProgress(): PyqProgress {
     const initial: PyqProgress = { attempts: {}, bookmarks: [] };
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(initial));
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(initial));
+      }
     } catch (e) {
-      console.error('Failed to reset PYQ progress', e);
+      // Safe fallback
     }
     return initial;
   }

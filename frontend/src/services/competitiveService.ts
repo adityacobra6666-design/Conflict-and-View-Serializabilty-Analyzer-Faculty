@@ -17,12 +17,14 @@ export const competitiveService = {
 
   getProgress(): CompetitiveExamsProgress {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        return JSON.parse(raw);
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const raw = window.localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          return JSON.parse(raw);
+        }
       }
     } catch (e) {
-      console.error('Failed to load progress', e);
+      // Safe fallback
     }
     return { attempts: {}, bookmarks: [] };
   },
@@ -36,9 +38,11 @@ export const competitiveService = {
       timestamp: new Date().toISOString()
     };
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+      }
     } catch (e) {
-      console.error('Failed to save progress', e);
+      // Safe fallback
     }
     return progress;
   },
@@ -52,9 +56,11 @@ export const competitiveService = {
       progress.bookmarks.push(questionId);
     }
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+      }
     } catch (e) {
-      console.error('Failed to save bookmark', e);
+      // Safe fallback
     }
     return progress;
   },
@@ -62,9 +68,11 @@ export const competitiveService = {
   resetProgress(): CompetitiveExamsProgress {
     const clean: CompetitiveExamsProgress = { attempts: {}, bookmarks: [] };
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(clean));
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(clean));
+      }
     } catch (e) {
-      console.error('Failed to reset progress', e);
+      // Safe fallback
     }
     return clean;
   }

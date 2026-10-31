@@ -1,6 +1,7 @@
 import os
 import base64
 import io
+import shutil
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from pypdf import PdfReader
 from PIL import Image
@@ -15,6 +16,11 @@ from app.algorithms.image_preprocessor import (
     normalize_image_mode,
 )
 import httpx
+
+# Auto-detect Tesseract OCR binary path across Linux / Docker / local environments
+tesseract_bin = shutil.which("tesseract") or "/usr/bin/tesseract"
+if os.path.isfile(tesseract_bin):
+    pytesseract.pytesseract.tesseract_cmd = tesseract_bin
 
 router = APIRouter(prefix="/api/upload", tags=["Document & Question Upload"])
 

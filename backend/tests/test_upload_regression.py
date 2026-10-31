@@ -408,10 +408,11 @@ class TestEndToEndPipeline:
     def test_upload_invalid_extension(self):
         response = client.post(
             "/api/upload/question",
-            files={"file": ("test.txt", b"R1(X), W2(X)", "text/plain")}
+            files={"file": ("test.docx", b"R1(X), W2(X)", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")}
         )
         assert response.status_code == 400
         assert "Unsupported file format" in response.json()["detail"]
+
 
     def test_upload_empty_file(self):
         response = client.post(
