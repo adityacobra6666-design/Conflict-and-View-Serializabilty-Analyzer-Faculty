@@ -111,6 +111,10 @@ async def upload_question_endpoint(file: UploadFile = File(...)):
     if len(file_bytes) == 0:
         raise HTTPException(status_code=400, detail="Uploaded file is empty.")
 
+    max_upload_bytes = 10 * 1024 * 1024  # 10 MB limit
+    if len(file_bytes) > max_upload_bytes:
+        raise HTTPException(status_code=400, detail="Uploaded file exceeds the maximum allowed size of 10 MB.")
+
     gemini_key = os.getenv("GEMINI_API_KEY", "").strip()
     ai_available = bool(gemini_key)
     ai_used = False

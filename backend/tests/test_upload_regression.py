@@ -22,10 +22,26 @@ from app.routes.upload import extract_text_from_image_bytes
 
 client = TestClient(app)
 
-FONT_PATH = "/usr/share/fonts/ttf-readex-pro/ReadexPro-Regular.ttf"
-FONT_SMALL = ImageFont.truetype(FONT_PATH, 24)
-FONT_MEDIUM = ImageFont.truetype(FONT_PATH, 32)
-FONT_LARGE = ImageFont.truetype(FONT_PATH, 40)
+def get_test_font(size: int):
+    for font_path in [
+        "/usr/share/fonts/ttf-readex-pro/ReadexPro-Regular.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/truetype/freefont/FreeSans.ttf",
+        "DejaVuSans.ttf"
+    ]:
+        try:
+            return ImageFont.truetype(font_path, size)
+        except Exception:
+            continue
+    try:
+        return ImageFont.load_default(size=size)
+    except Exception:
+        return ImageFont.load_default()
+
+FONT_SMALL = get_test_font(24)
+FONT_MEDIUM = get_test_font(32)
+FONT_LARGE = get_test_font(40)
+
 
 
 def create_schedule_image(text: str, fmt: str = "PNG", font=None, size=None) -> bytes:

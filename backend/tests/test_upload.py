@@ -7,9 +7,25 @@ from app.algorithms.schedule_extractor import parse_schedule_from_text, extract_
 
 client = TestClient(app)
 
+def get_test_font(size: int = 24):
+    for font_path in [
+        "/usr/share/fonts/ttf-readex-pro/ReadexPro-Regular.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/truetype/freefont/FreeSans.ttf",
+        "DejaVuSans.ttf"
+    ]:
+        try:
+            return ImageFont.truetype(font_path, size)
+        except Exception:
+            continue
+    try:
+        return ImageFont.load_default(size=size)
+    except Exception:
+        return ImageFont.load_default()
+
 def create_schedule_image(text: str, fmt: str = "PNG") -> bytes:
     """Helper to generate an image buffer with rendered text."""
-    font = ImageFont.truetype("/usr/share/fonts/ttf-readex-pro/ReadexPro-Regular.ttf", 24)
+    font = get_test_font(24)
     img = Image.new("RGB", (700, 140), color=(255, 255, 255))
     d = ImageDraw.Draw(img)
     d.text((20, 40), text, fill=(0, 0, 0), font=font)
@@ -72,6 +88,16 @@ def test_upload_empty_file():
     )
     assert response.status_code == 400
     assert "empty" in response.json()["detail"]
+
+def test_upload_file_exceeds_size_limit():
+    large_payload = b"A" * (10 * 1024 * 1024 + 10)
+    response = client.post(
+        "/api/upload/question",
+        files={"file": ("large.txt", large_payload, "text/plain")}
+    )
+    assert response.status_code == 400
+    assert "exceeds" in response.json()["detail"].lower()
+
 
 def test_upload_png_schedule_ocr():
     img_bytes = create_schedule_image("R1(X), W2(X), R3(Y), W1(Y)", fmt="PNG")
